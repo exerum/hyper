@@ -200,6 +200,15 @@ where
     req_rx: ClientRx<B>,
 }
 
+impl<B> ClientTask<B>
+where
+    B: HttpBody + 'static,
+{
+    pub(crate) fn is_extended_connect_protocol_enabled(&self) -> bool {
+        self.h2_tx.is_extended_connect_protocol_enabled()
+    }
+}
+
 impl<B> Future for ClientTask<B>
 where
     B: HttpBody + Send + 'static,

@@ -1,9 +1,12 @@
-//! HTTP extensions
+//! HTTP extensions.
 
 use bytes::Bytes;
 #[cfg(feature = "http1")]
 use http::header::{HeaderName, IntoHeaderName, ValueIter};
 use http::HeaderMap;
+
+#[cfg(feature = "http2")]
+pub use h2::ext::Protocol;
 
 /// A map from header names to their original casing as received in an HTTP message.
 ///

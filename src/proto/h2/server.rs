@@ -40,6 +40,7 @@ pub(crate) struct Config {
     pub(crate) initial_conn_window_size: u32,
     pub(crate) initial_stream_window_size: u32,
     pub(crate) max_frame_size: u32,
+    pub(crate) enable_connect_protocol: bool,
     pub(crate) max_concurrent_streams: Option<u32>,
     #[cfg(feature = "runtime")]
     pub(crate) keep_alive_interval: Option<Duration>,
@@ -54,6 +55,7 @@ impl Default for Config {
             initial_conn_window_size: DEFAULT_CONN_WINDOW,
             initial_stream_window_size: DEFAULT_STREAM_WINDOW,
             max_frame_size: DEFAULT_MAX_FRAME_SIZE,
+            enable_connect_protocol: false,
             max_concurrent_streams: None,
             #[cfg(feature = "runtime")]
             keep_alive_interval: None,
@@ -112,6 +114,9 @@ where
             .max_frame_size(config.max_frame_size);
         if let Some(max) = config.max_concurrent_streams {
             builder.max_concurrent_streams(max);
+        }
+        if config.enable_connect_protocol {
+            builder.enable_connect_protocol();
         }
         let handshake = builder.handshake(io);
 

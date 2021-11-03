@@ -252,3 +252,6 @@ required-features = ["full"]
 name = "server"
 path = "tests/server.rs"
 required-features = ["full"]
+
+[patch.crates-io]
+h2 = { git = "https://github.com/hyperium/h2.git", branch = "rfc8441" }
