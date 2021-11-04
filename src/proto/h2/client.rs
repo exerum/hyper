@@ -14,6 +14,7 @@ use tracing::{debug, trace, warn};
 use super::{ping, H2Upgraded, PipeToSendStream, SendBuf};
 use crate::body::HttpBody;
 use crate::common::{exec::Exec, task, Future, Never, Pin, Poll};
+use crate::ext::Protocol;
 use crate::headers;
 use crate::proto::h2::UpgradedSendStream;
 use crate::proto::Dispatched;
@@ -263,6 +264,10 @@ where
                             )));
                             continue;
                         }
+                    }
+
+                    if let Some(protocol) = req.extensions_mut().remove::<Protocol>() {
+                        req.extensions_mut().insert(protocol.into_inner());
                     }
 
                     let (fut, body_tx) = match self.h2_tx.send_request(req, !is_connect && eos) {

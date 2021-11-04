@@ -15,6 +15,7 @@ use super::{ping, PipeToSendStream, SendBuf};
 use crate::body::HttpBody;
 use crate::common::exec::ConnStreamExec;
 use crate::common::{date, task, Future, Pin, Poll};
+use crate::ext::Protocol;
 use crate::headers;
 use crate::proto::h2::ping::Recorder;
 use crate::proto::h2::{H2Upgraded, UpgradedSendStream};
@@ -281,7 +282,7 @@ where
 
                         let is_connect = req.method() == Method::CONNECT;
                         let (mut parts, stream) = req.into_parts();
-                        let (req, connect_parts) = if !is_connect {
+                        let (mut req, connect_parts) = if !is_connect {
                             (
                                 Request::from_parts(
                                     parts,
@@ -307,6 +308,10 @@ where
                                 }),
                             )
                         };
+
+                        if let Some(protocol) = req.extensions_mut().remove::<h2::ext::Protocol>() {
+                            req.extensions_mut().insert(Protocol::from_inner(protocol));
+                        }
 
                         let fut = H2Stream::new(service.call(req), connect_parts, respond);
                         exec.execute_h2stream(fut);
