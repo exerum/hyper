@@ -529,6 +529,7 @@ impl ConnectingTcpRemote {
         let mut err = None;
         for addr in &mut self.addrs {
             debug!("connecting to {}", addr);
+            #[cfg(not(target_os = "wasi"))]
             match connect(&addr, config, self.connect_timeout)?.await {
                 Ok(tcp) => {
                     debug!("connected to {}", addr);
@@ -539,6 +540,11 @@ impl ConnectingTcpRemote {
                     err = Some(e);
                 }
             }
+            #[cfg(target_os = "wasi")]
+                return tokio::net::TcpStream::connect(addr).await.map_err(|e|{
+                ConnectError::new(
+                    "tcp connect error", e)
+            })
         }
 
         match err {
@@ -551,6 +557,7 @@ impl ConnectingTcpRemote {
     }
 }
 
+#[cfg(not(target_os = "wasi"))]
 fn bind_local_address(
     socket: &socket2::Socket,
     dst_addr: &SocketAddr,
@@ -579,6 +586,7 @@ fn bind_local_address(
     Ok(())
 }
 
+#[cfg(not(target_os = "wasi"))]
 fn connect(
     addr: &SocketAddr,
     config: &Config,
