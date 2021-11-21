@@ -541,10 +541,18 @@ impl ConnectingTcpRemote {
                 }
             }
             #[cfg(target_os = "wasi")]
-                return tokio::net::TcpStream::connect(addr).await.map_err(|e|{
-                ConnectError::new(
-                    "tcp connect error", e)
-            })
+            let connect = tokio::net::TcpStream::connect(addr);
+            return (async move {
+                match self.connect_timeout {
+                    Some(dur) => match tokio::time::timeout(dur, connect).await {
+                        Ok(Ok(s)) => Ok(s),
+                        Ok(Err(e)) => Err(e),
+                        Err(e) => Err(io::Error::new(io::ErrorKind::TimedOut, e)),
+                    },
+                    None => connect.await,
+                }
+                .map_err(ConnectError::m("tcp connect error"))
+            }).await
         }
 
         match err {
